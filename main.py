@@ -19,6 +19,7 @@ Sequential Chains: These link multiple sub-chains together, where the output of 
     summary_template = """
     Given the information {information} abput a person I want you to create :
     1. Give a short summary
+    2. Give types of chain that are used in the information
     """
 
     summary_prompt_template = PromptTemplate(

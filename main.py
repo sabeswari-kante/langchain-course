@@ -1,39 +1,42 @@
 from dotenv import load_dotenv
-from langchain_core.prompts import PromptTemplate 
-from langchain_openai import ChatOpenAI 
-from langchain_ollama import ChatOllama
+import os
+from langchain.agents import create_agent
+from langchain.tools import tool
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama 
+# from tavily import TavilyClient # remove this line if intersted to use langchain_tavily and remove tavily client & @tool decorator and fn search  
+from langchain_tavily import TavilySearch
 
-load_dotenv()
+load_dotenv() 
 
+# tavily = TavilyClient()
+
+# @tool
+# def search(query: str) -> str:
+#     """
+#     Tool that searches over internet
+#     Args: 
+#         query: the query to seach for
+#     Return:
+#         The search result
+#     """
+#     print(f"searching for {query}")
+#     return tavily.search(query=query) # "India weather is sunny"
+
+# creating agent from here
+# llm = ChatOpenAI()
+# llm = ChatOllama(model="llama3")
+llm = ChatOllama(model="qwen2.5")
+tools = [TavilySearch()] # [TavilySearch()] [search]
+agent = create_agent(model = llm, tools = tools)
 
 def main():
     print("Hello from langchain-course!")
-    information = """
-In LangChain, chains act as step-by-step workflows that complete tasks in sequence. Each step can use an LLM to process or transform data and then interact with external tools if needed. Built-in chains are like ready-made templates for common tasks. They link together LLMs, prompts and tools using pre-defined logic, helping developers save time by avoiding manual setup for every step.
-
-Common Built-in Chains:
-
-LLMChain: The most basic chain. It simply takes an input, formats it using a prompt and passes it to an LLM to get a response.
-Sequential Chains: These link multiple sub-chains together, where the output of one step automatically becomes the input for the next. It's great for breaking down a complex problem.
-"""
-    summary_template = """
-    Given the information {information} abput a person I want you to create :
-    1. Give a short summary
-    2. Give types of chain that are used in the information
-    """
-
-    summary_prompt_template = PromptTemplate(
-        input_variables=['information'],
-        template= summary_template
-    )
-
-    # llm= ChatOpenAI(temperature = 0, model="gpt-5-mini") #gpt-5 
-    llm= ChatOllama(temperature =0, model = "gemma3:270m")
-    chain = summary_prompt_template | llm
-    response = chain.invoke(input = {"information": information})
-    print(response.content)
+    response = agent.invoke({"messages": HumanMessage(content ="Search for 3 job postings for an AI engineer using langchain in the bay area on linkedin and list their details")})
+    # response = agent.invoke({"messages": HumanMessage(content ="What is the weather in India?")})
+    print(response)
 
 
 if __name__ == "__main__":
     main()
-
